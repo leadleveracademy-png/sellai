@@ -58,7 +58,7 @@ export async function analisarImagemComGemini(
   imagemBase64: string,
   mimeType: string
 ): Promise<RespostaGemini> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
   const imagePart = {
     inlineData: {
