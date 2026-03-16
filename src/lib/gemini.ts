@@ -55,30 +55,23 @@ export async function analisarImagemComGemini(
   imagemBase64: string,
   mimeType: string
 ): Promise<RespostaGemini> {
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.GEMINI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-pro-1.5:free',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: PROMPT_SOCIAL_SELLING },
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:${mimeType};base64,${imagemBase64}`,
-              },
-            },
-          ],
-        },
-      ],
-    }),
-  })
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { text: PROMPT_SOCIAL_SELLING },
+              { inlineData: { mimeType, data: imagemBase64 } },
+            ],
+          },
+        ],
+      }),
+    }
+  )
 
   if (!response.ok) {
     const erro = await response.text()
@@ -86,7 +79,7 @@ export async function analisarImagemComGemini(
   }
 
   const data = await response.json()
-  const texto = data.choices?.[0]?.message?.content
+  const texto = data.candidates?.[0]?.content?.parts?.[0]?.text
 
   if (!texto) {
     console.error('Resposta OpenRouter:', JSON.stringify(data))
