@@ -62,7 +62,7 @@ export async function analisarImagemComGemini(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'google/gemini-pro-1.5:free',
+      model: 'google/gemini-1.5-pro:free',
       messages: [
         {
           role: 'user',
