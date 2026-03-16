@@ -52,9 +52,9 @@ Responda APENAS com um JSON válido no seguinte formato, sem markdown, sem texto
 }`
 
 const MODELOS_VISION = [
+  'nvidia/nemotron-nano-12b-v2-vl:free',
   'google/gemma-3-27b-it:free',
   'mistralai/mistral-small-3.1-24b-instruct:free',
-  'nvidia/nemotron-nano-12b-v2-vl:free',
 ]
 
 async function chamarOpenRouter(model: string, imagemBase64: string, mimeType: string, briefing?: string) {
