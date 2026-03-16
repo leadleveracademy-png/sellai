@@ -38,17 +38,8 @@ export default function DashboardPage() {
     setEditandoBriefing(false)
   }
 
-  // Aguarda briefing carregar antes de renderizar
-  if (carregandoBriefing) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-6 h-6 border-2 border-brand-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  // Sem briefing ou editando: mostra setup
-  if (!briefing || editandoBriefing) {
+  // Sem briefing ou editando: mostra setup (aguarda carregar para nao piscar)
+  if (!carregandoBriefing && (!briefing || editandoBriefing)) {
     return <BriefingSetup onConcluir={handleBriefingConcluido} />
   }
 
@@ -63,11 +54,13 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <BriefingCard
-            briefing={briefing}
-            onEditar={() => setEditandoBriefing(true)}
-            onReiniciar={() => setBriefing(null)}
-          />
+          {briefing && (
+            <BriefingCard
+              briefing={briefing}
+              onEditar={() => setEditandoBriefing(true)}
+              onReiniciar={() => setBriefing(null)}
+            />
+          )}
 
           <UploadImagem onAnalise={handleAnalise} />
 

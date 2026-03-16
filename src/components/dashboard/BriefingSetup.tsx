@@ -89,11 +89,15 @@ export default function BriefingSetup({ onConcluir }: Props) {
     let briefing = `Tipo de oferta: ${tipoFinal} | Público-alvo: ${publicoFinal} | Ticket médio: ${ticketFinal}`
     if (detalhes.trim()) briefing += ` | Informações adicionais: ${detalhes.trim()}`
 
-    await fetch('/api/briefing', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ briefing }),
-    })
+    try {
+      await fetch('/api/briefing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ briefing }),
+      })
+    } catch {
+      // continua mesmo se falhar — tabela pode nao existir ainda
+    }
     setSalvando(false)
     onConcluir()
   }
