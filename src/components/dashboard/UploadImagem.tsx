@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import type { AnaliseImagem } from '@/types'
 
 interface Props {
-  onAnalise: (resultado: AnaliseImagem) => void
+  onAnalise: (resultado: AnaliseImagem, imagemUrl: string) => void
 }
 
 export default function UploadImagem({ onAnalise }: Props) {
@@ -73,8 +73,9 @@ export default function UploadImagem({ onAnalise }: Props) {
         return
       }
 
-      onAnalise(dados.analise)
+      const urlParaPassar = previewUrl || ''
       limpar()
+      onAnalise(dados.analise, urlParaPassar)
     } catch {
       setErro('Erro de conexao. Verifique sua internet e tente novamente.')
     } finally {

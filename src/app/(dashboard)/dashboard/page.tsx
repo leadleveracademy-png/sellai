@@ -7,10 +7,11 @@ import type { AnaliseImagem } from '@/types'
 
 export default function DashboardPage() {
   const [analise, setAnalise] = useState<AnaliseImagem | null>(null)
+  const [imagemAnalise, setImagemAnalise] = useState<string>('')
 
-  function handleAnalise(resultado: AnaliseImagem) {
+  function handleAnalise(resultado: AnaliseImagem, imagemUrl: string) {
     setAnalise(resultado)
-    // Scroll para o topo para ver os resultados
+    setImagemAnalise(imagemUrl)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -59,7 +60,8 @@ export default function DashboardPage() {
           </div>
           <ResultadoAnalise
             analise={analise}
-            onNovaAnalise={() => setAnalise(null)}
+            imagemUrl={imagemAnalise}
+            onNovaAnalise={() => { setAnalise(null); setImagemAnalise('') }}
           />
         </div>
       )}

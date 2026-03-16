@@ -1,17 +1,46 @@
 'use client'
 
-import { ArrowLeft, Brain } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowLeft, Brain, ChevronDown, ChevronUp, ImageIcon } from 'lucide-react'
 import CartaoSugestao from './CartaoSugestao'
 import type { AnaliseImagem } from '@/types'
 
 interface Props {
   analise: AnaliseImagem
+  imagemUrl: string
   onNovaAnalise: () => void
 }
 
-export default function ResultadoAnalise({ analise, onNovaAnalise }: Props) {
+export default function ResultadoAnalise({ analise, imagemUrl, onNovaAnalise }: Props) {
+  const [imagemExpandida, setImagemExpandida] = useState(false)
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
+      {/* Imagem colapsavel */}
+      {imagemUrl && (
+        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+          <button
+            onClick={() => setImagemExpandida(!imagemExpandida)}
+            className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <ImageIcon size={16} className="text-slate-400" />
+              Print enviado
+            </div>
+            {imagemExpandida ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+          </button>
+          {imagemExpandida && (
+            <div className="border-t border-slate-100">
+              <img
+                src={imagemUrl}
+                alt="Print analisado"
+                className="w-full object-contain max-h-96"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Contexto detectado */}
       <div className="card bg-brand-50 border-brand-100">
         <div className="flex items-start gap-3">
