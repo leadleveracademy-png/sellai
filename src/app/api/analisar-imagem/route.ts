@@ -65,8 +65,15 @@ export async function POST(request: NextRequest) {
       imagemUrl = urlData.publicUrl
     }
 
+    // Busca briefing do usuario
+    const { data: perfil } = await supabase
+      .from('perfis')
+      .select('briefing')
+      .eq('usuario_id', user.id)
+      .single()
+
     // Chama Gemini
-    const resultadoGemini = await analisarImagemComGemini(base64, arquivo.type)
+    const resultadoGemini = await analisarImagemComGemini(base64, arquivo.type, perfil?.briefing ?? undefined)
 
     // Salva no banco de dados
     const { data: analise, error: dbError } = await supabase

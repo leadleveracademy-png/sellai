@@ -1,18 +1,55 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import UploadImagem from '@/components/dashboard/UploadImagem'
 import ResultadoAnalise from '@/components/dashboard/ResultadoAnalise'
+import BriefingSetup from '@/components/dashboard/BriefingSetup'
+import BriefingCard from '@/components/dashboard/BriefingCard'
 import type { AnaliseImagem } from '@/types'
+
+export const dynamic = 'force-dynamic'
 
 export default function DashboardPage() {
   const [analise, setAnalise] = useState<AnaliseImagem | null>(null)
   const [imagemAnalise, setImagemAnalise] = useState<string>('')
+  const [briefing, setBriefing] = useState<string | null>(null)
+  const [carregandoBriefing, setCarregandoBriefing] = useState(true)
+  const [editandoBriefing, setEditandoBriefing] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/briefing')
+      .then((r) => r.json())
+      .then((d) => {
+        setBriefing(d.briefing)
+        setCarregandoBriefing(false)
+      })
+  }, [])
 
   function handleAnalise(resultado: AnaliseImagem, imagemUrl: string) {
     setAnalise(resultado)
     setImagemAnalise(imagemUrl)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  async function handleBriefingConcluido() {
+    const r = await fetch('/api/briefing')
+    const d = await r.json()
+    setBriefing(d.briefing)
+    setEditandoBriefing(false)
+  }
+
+  // Aguarda briefing carregar antes de renderizar
+  if (carregandoBriefing) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-6 h-6 border-2 border-brand-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  // Sem briefing ou editando: mostra setup
+  if (!briefing || editandoBriefing) {
+    return <BriefingSetup onConcluir={handleBriefingConcluido} />
   }
 
   return (
@@ -26,9 +63,14 @@ export default function DashboardPage() {
             </p>
           </div>
 
+          <BriefingCard
+            briefing={briefing}
+            onEditar={() => setEditandoBriefing(true)}
+            onReiniciar={() => setBriefing(null)}
+          />
+
           <UploadImagem onAnalise={handleAnalise} />
 
-          {/* Instrucoes rapidas */}
           <div className="card">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
               Como usar

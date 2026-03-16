@@ -57,7 +57,11 @@ const MODELOS_VISION = [
   'nvidia/nemotron-nano-12b-v2-vl:free',
 ]
 
-async function chamarOpenRouter(model: string, imagemBase64: string, mimeType: string) {
+async function chamarOpenRouter(model: string, imagemBase64: string, mimeType: string, briefing?: string) {
+  const promptFinal = briefing
+    ? `${PROMPT_SOCIAL_SELLING}\n\nCONTEXTO DO VENDEDOR (use para personalizar as mensagens):\n${briefing}`
+    : PROMPT_SOCIAL_SELLING
+
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -70,7 +74,7 @@ async function chamarOpenRouter(model: string, imagemBase64: string, mimeType: s
         {
           role: 'user',
           content: [
-            { type: 'text', text: PROMPT_SOCIAL_SELLING },
+            { type: 'text', text: promptFinal },
             {
               type: 'image_url',
               image_url: { url: `data:${mimeType};base64,${imagemBase64}` },
@@ -97,14 +101,15 @@ async function chamarOpenRouter(model: string, imagemBase64: string, mimeType: s
 
 export async function analisarImagemComGemini(
   imagemBase64: string,
-  mimeType: string
+  mimeType: string,
+  briefing?: string
 ): Promise<RespostaGemini> {
   let ultimoErro: Error | null = null
 
   for (const model of MODELOS_VISION) {
     try {
       console.log(`Tentando modelo: ${model}`)
-      const texto = await chamarOpenRouter(model, imagemBase64, mimeType)
+      const texto = await chamarOpenRouter(model, imagemBase64, mimeType, briefing)
 
       let jsonStr = texto
         .replace(/```json\n?/g, '')
