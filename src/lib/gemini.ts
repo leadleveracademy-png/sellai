@@ -51,10 +51,13 @@ Responda APENAS com um JSON válido no seguinte formato, sem markdown, sem texto
   ]
 }`
 
-export async function analisarImagemComGemini(
-  imagemBase64: string,
-  mimeType: string
-): Promise<RespostaGemini> {
+const MODELOS_VISION = [
+  'google/gemma-3-27b-it:free',
+  'mistralai/mistral-small-3.1-24b-instruct:free',
+  'nvidia/nemotron-nano-12b-v2-vl:free',
+]
+
+async function chamarOpenRouter(model: string, imagemBase64: string, mimeType: string) {
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -62,7 +65,7 @@ export async function analisarImagemComGemini(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'google/gemini-1.5-pro:free',
+      model,
       messages: [
         {
           role: 'user',
@@ -84,25 +87,43 @@ export async function analisarImagemComGemini(
   }
 
   const data = await response.json()
+  if (data.error) throw new Error(`OpenRouter error: ${JSON.stringify(data.error)}`)
+
   const texto = data.choices?.[0]?.message?.content
+  if (!texto) throw new Error('Resposta vazia da IA')
 
-  if (!texto) {
-    console.error('Resposta OpenRouter:', JSON.stringify(data))
-    throw new Error('Resposta vazia da IA')
+  return texto
+}
+
+export async function analisarImagemComGemini(
+  imagemBase64: string,
+  mimeType: string
+): Promise<RespostaGemini> {
+  let ultimoErro: Error | null = null
+
+  for (const model of MODELOS_VISION) {
+    try {
+      console.log(`Tentando modelo: ${model}`)
+      const texto = await chamarOpenRouter(model, imagemBase64, mimeType)
+
+      let jsonStr = texto
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim()
+
+      if (!jsonStr.startsWith('{')) {
+        const match = jsonStr.match(/\{[\s\S]*\}/)
+        if (match) jsonStr = match[0]
+      }
+
+      const dados = JSON.parse(jsonStr) as RespostaGemini
+      console.log(`Sucesso com modelo: ${model}`)
+      return dados
+    } catch (err) {
+      ultimoErro = err instanceof Error ? err : new Error(String(err))
+      console.error(`Falha com ${model}:`, ultimoErro.message)
+    }
   }
 
-  // Extrai JSON da resposta — tenta bloco de codigo primeiro, depois busca {} direto
-  let jsonStr = texto
-    .replace(/```json\n?/g, '')
-    .replace(/```\n?/g, '')
-    .trim()
-
-  // Se nao comeca com {, tenta extrair o primeiro objeto JSON encontrado
-  if (!jsonStr.startsWith('{')) {
-    const match = jsonStr.match(/\{[\s\S]*\}/)
-    if (match) jsonStr = match[0]
-  }
-
-  const dados = JSON.parse(jsonStr) as RespostaGemini
-  return dados
+  throw ultimoErro ?? new Error('Todos os modelos falharam')
 }
