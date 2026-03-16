@@ -1,7 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
-import { RespostaGemini, SugestaoResposta } from '@/types'
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+import { RespostaGemini } from '@/types'
 
 const PROMPT_SOCIAL_SELLING = `Você é um especialista em vendas consultivas, social selling e fechamento de negócios no WhatsApp e Instagram.
 
@@ -58,20 +55,41 @@ export async function analisarImagemComGemini(
   imagemBase64: string,
   mimeType: string
 ): Promise<RespostaGemini> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
-
-  const imagePart = {
-    inlineData: {
-      data: imagemBase64,
-      mimeType: mimeType,
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.GEMINI_API_KEY}`,
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify({
+      model: 'nvidia/nemotron-nano-12b-v2-vl:free',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: PROMPT_SOCIAL_SELLING },
+            {
+              type: 'image_url',
+              image_url: {
+                url: `data:${mimeType};base64,${imagemBase64}`,
+              },
+            },
+          ],
+        },
+      ],
+    }),
+  })
+
+  if (!response.ok) {
+    const erro = await response.text()
+    throw new Error(`OpenRouter error: ${response.status} - ${erro}`)
   }
 
-  const result = await model.generateContent([PROMPT_SOCIAL_SELLING, imagePart])
-  const response = await result.response
-  const texto = response.text()
+  const data = await response.json()
+  const texto = data.choices?.[0]?.message?.content
 
-  // Limpa possivel markdown ao redor do JSON
+  if (!texto) throw new Error('Resposta vazia da IA')
+
   const jsonLimpo = texto
     .replace(/```json\n?/g, '')
     .replace(/```\n?/g, '')
