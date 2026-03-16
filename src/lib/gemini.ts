@@ -62,7 +62,7 @@ export async function analisarImagemComGemini(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'nvidia/nemotron-nano-12b-v2-vl:free',
+      model: 'google/gemini-pro-1.5:free',
       messages: [
         {
           role: 'user',
