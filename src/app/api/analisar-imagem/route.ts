@@ -96,9 +96,10 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (erro) {
-    console.error('Erro na analise:', erro)
+    const msg = erro instanceof Error ? erro.message : String(erro)
+    console.error('Erro na analise:', msg)
 
-    if (erro instanceof SyntaxError) {
+    if (erro instanceof SyntaxError || msg.includes('JSON')) {
       return NextResponse.json(
         { erro: 'Erro ao processar resposta da IA. Tente novamente.' },
         { status: 500 }
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { erro: 'Erro interno. Tente novamente em alguns segundos.' },
+      { erro: msg || 'Erro interno. Tente novamente em alguns segundos.' },
       { status: 500 }
     )
   }

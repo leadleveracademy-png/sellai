@@ -88,13 +88,23 @@ export async function analisarImagemComGemini(
   const data = await response.json()
   const texto = data.choices?.[0]?.message?.content
 
-  if (!texto) throw new Error('Resposta vazia da IA')
+  if (!texto) {
+    console.error('Resposta OpenRouter:', JSON.stringify(data))
+    throw new Error('Resposta vazia da IA')
+  }
 
-  const jsonLimpo = texto
+  // Extrai JSON da resposta — tenta bloco de codigo primeiro, depois busca {} direto
+  let jsonStr = texto
     .replace(/```json\n?/g, '')
     .replace(/```\n?/g, '')
     .trim()
 
-  const dados = JSON.parse(jsonLimpo) as RespostaGemini
+  // Se nao comeca com {, tenta extrair o primeiro objeto JSON encontrado
+  if (!jsonStr.startsWith('{')) {
+    const match = jsonStr.match(/\{[\s\S]*\}/)
+    if (match) jsonStr = match[0]
+  }
+
+  const dados = JSON.parse(jsonStr) as RespostaGemini
   return dados
 }
